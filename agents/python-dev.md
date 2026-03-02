@@ -111,4 +111,5 @@ Follow the principles in @python-dev:context/PYTHON_BEST_PRACTICES.md:
 
 ---
 
+@foundation:context/LANGUAGE_PHILOSOPHY.md
 @foundation:context/shared/common-agent-base.md
