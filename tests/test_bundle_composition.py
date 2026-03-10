@@ -251,3 +251,34 @@ def test_expected_files_exist():
     ]
     for path in expected:
         assert (ROOT / path).exists(), f"Missing expected file: {path}"
+
+
+# --- Prerequisite validation ---
+
+
+def test_python_dev_instructions_has_prerequisites():
+    """python-dev-instructions.md includes prerequisites section with install guidance."""
+    content = (ROOT / "context" / "python-dev-instructions.md").read_text()
+    assert "## Prerequisites" in content, "Must have a '## Prerequisites' section"
+    # Prerequisites must appear before Best Practices
+    prereq_pos = content.index("## Prerequisites")
+    best_practices_pos = content.index("## Best Practices")
+    assert prereq_pos < best_practices_pos, "Prerequisites must appear before Best Practices"
+    # Must contain install guidance
+    assert "uv add ruff pyright" in content, "Must provide uv install command"
+    assert "python -m ruff --version" in content, "Must provide verification command"
+    # Must contain troubleshooting table
+    assert "TOOL-NOT-FOUND" in content, "Must reference TOOL-NOT-FOUND error code"
+
+
+def test_python_dev_agent_has_prerequisites_self_check():
+    """python-dev agent includes prerequisites self-check before capabilities."""
+    content = (ROOT / "agents" / "python-dev.md").read_text()
+    assert "## Prerequisites Self-Check" in content, "Agent must have a '## Prerequisites Self-Check' section"
+    # Must appear before Your Capabilities
+    prereq_pos = content.index("## Prerequisites Self-Check")
+    capabilities_pos = content.index("## Your Capabilities")
+    assert prereq_pos < capabilities_pos, "Prerequisites Self-Check must appear before Your Capabilities"
+    # Must provide install guidance
+    assert "uv add ruff pyright" in content, "Must provide install command"
+    assert "python -m ruff --version" in content, "Must provide verification command"

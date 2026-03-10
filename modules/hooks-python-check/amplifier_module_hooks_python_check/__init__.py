@@ -322,6 +322,18 @@ class PythonCheckHooks:
         # Filter by report level
         result.issues = self._filter_by_level(result.issues)
 
+        # Check for tool-not-found issues — surface these prominently
+        # and bypass the normal formatting/redundancy-suppression path
+        tool_not_found = [i for i in result.issues if i.code == "TOOL-NOT-FOUND"]
+        if tool_not_found:
+            msgs = "; ".join(i.message for i in tool_not_found)
+            return HookResult(
+                action="continue",
+                user_message=f"\u26a0 Python dev tools not installed: {msgs}",
+                user_message_level="error",
+                user_message_source="python-check",
+            )
+
         # Get display path and file state
         display_path = self._get_relative_path(file_path)
         file_state = self._get_file_state(file_path)

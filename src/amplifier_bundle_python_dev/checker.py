@@ -13,7 +13,10 @@ import sys
 from pathlib import Path
 
 from .config import load_config
-from .models import CheckConfig, CheckResult, Issue, Severity
+from .models import CheckConfig
+from .models import CheckResult
+from .models import Issue
+from .models import Severity
 
 
 class PythonChecker:
@@ -95,6 +98,23 @@ class PythonChecker:
                 count += len(list(path.rglob("*.py")))
         return count
 
+    def _tool_not_found_result(self, source: str, tool_name: str) -> CheckResult:
+        """Return a CheckResult indicating a required tool is not installed."""
+        return CheckResult(
+            issues=[
+                Issue(
+                    file="",
+                    line=0,
+                    column=0,
+                    code="TOOL-NOT-FOUND",
+                    message=f"{tool_name} not found. Install with: uv add {tool_name}",
+                    severity=Severity.ERROR,
+                    source=source,
+                )
+            ],
+            checks_run=[source],
+        )
+
     def _run_ruff_format(self, paths: list[str], fix: bool = False) -> CheckResult:
         """Run ruff format check."""
         cmd = [sys.executable, "-m", "ruff", "format"]
@@ -106,20 +126,10 @@ class PythonChecker:
         try:
             result = subprocess.run(cmd, capture_output=True, text=True)
         except FileNotFoundError:
-            return CheckResult(
-                issues=[
-                    Issue(
-                        file="",
-                        line=0,
-                        column=0,
-                        code="TOOL-NOT-FOUND",
-                        message="ruff not found. Install with: uv add ruff",
-                        severity=Severity.ERROR,
-                        source="ruff-format",
-                    )
-                ],
-                checks_run=["ruff-format"],
-            )
+            return self._tool_not_found_result("ruff-format", "ruff")
+
+        if result.returncode != 0 and "No module named" in result.stderr:
+            return self._tool_not_found_result("ruff-format", "ruff")
 
         issues = []
         if result.returncode != 0 and not fix:
@@ -158,20 +168,10 @@ class PythonChecker:
         try:
             result = subprocess.run(cmd, capture_output=True, text=True)
         except FileNotFoundError:
-            return CheckResult(
-                issues=[
-                    Issue(
-                        file="",
-                        line=0,
-                        column=0,
-                        code="TOOL-NOT-FOUND",
-                        message="ruff not found. Install with: uv add ruff",
-                        severity=Severity.ERROR,
-                        source="ruff-lint",
-                    )
-                ],
-                checks_run=["ruff-lint"],
-            )
+            return self._tool_not_found_result("ruff-lint", "ruff")
+
+        if result.returncode != 0 and "No module named" in result.stderr:
+            return self._tool_not_found_result("ruff-lint", "ruff")
 
         issues = []
         if result.stdout.strip():
@@ -216,20 +216,10 @@ class PythonChecker:
         try:
             result = subprocess.run(cmd, capture_output=True, text=True)
         except FileNotFoundError:
-            return CheckResult(
-                issues=[
-                    Issue(
-                        file="",
-                        line=0,
-                        column=0,
-                        code="TOOL-NOT-FOUND",
-                        message="pyright not found. Install with: uv add pyright",
-                        severity=Severity.ERROR,
-                        source="pyright",
-                    )
-                ],
-                checks_run=["pyright"],
-            )
+            return self._tool_not_found_result("pyright", "pyright")
+
+        if result.returncode != 0 and "No module named" in result.stderr:
+            return self._tool_not_found_result("pyright", "pyright")
 
         issues = []
         if result.stdout.strip():

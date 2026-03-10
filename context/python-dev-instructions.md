@@ -96,6 +96,31 @@ report_level = "warning"
 auto_inject = true
 ```
 
+## Prerequisites
+
+The `python_check` tool invokes `ruff` and `pyright` as Python modules via `sys.executable -m <tool>`. Both must be installed as Python packages in the **active environment** (not just on PATH).
+
+**Verify installation:**
+```bash
+python -m ruff --version && python -m pyright --version
+```
+
+**Install if missing:**
+```bash
+uv add ruff pyright        # or: pip install ruff pyright
+```
+
+> **Why Python modules?** The bundle uses `sys.executable -m ruff` to ensure it runs the tools from the same Python environment as the checker itself. Having `ruff` on PATH via Homebrew or pipx is not sufficient — it must be importable by the active interpreter.
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| `TOOL-NOT-FOUND: ruff not found` | `uv add ruff` |
+| `TOOL-NOT-FOUND: pyright not found` | `uv add pyright` |
+| Checks return no issues but ruff isn't running | Verify with `python -m ruff --version` |
+| `pyright-langserver` not found (LSP side) | `npm install -g pyright` |
+
 ## Best Practices
 
 See @python-dev:context/PYTHON_BEST_PRACTICES.md for the full development philosophy.
